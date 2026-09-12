@@ -20,6 +20,33 @@ python vit/run_best_seeds.py --optimizer rikfad0            # seed replicates
 
 Launch scripts under `*/scripts/` are SLURM wrappers with the cluster-specific directives removed; adapt the partition and account lines to your site.
 
+### Theory numerics
+
+`theory_numerics/` holds the numerical verification of the continuous-time `gamma = 0`
+analysis: the reduced energy `E = f(X) - f(X*) + 0.5*||P||_F^2` decays like `t^-1` when
+`epsilon_stab = 0` and like `t^-1/2` when `epsilon_stab > 0`, with a crossover at
+`E ~ alpha*mu*epsilon_stab`.
+
+![Energy decay at gamma = 0](theory_numerics/gamma0_decay.png)
+
+Long trajectories to `T = 1e7` come from the BACD splitting implemented in
+`theory_numerics/rikfad.c`, since adaptive integration is impractical at that horizon;
+the short-horizon parameter sweeps use MATLAB's `ode89`. Everything regenerates from the
+shipped runs without recomputing them:
+
+```bash
+cd theory_numerics
+matlab -batch plot_gamma0_decay          # the figure above
+matlab -batch validate_rates             # exponent, prefactor and crossover sweeps
+matlab -batch validate_bacd_steps        # step-size refinement check
+python3 slopes.py long_4x3_e0.dat 1e6:1e7
+```
+
+Final-decade slopes over `[1e6, 1e7]` are `-0.989`, `-0.998`, `-0.999` at
+`epsilon_stab = 0` and `-0.497`, `-0.501`, `-0.503` at `epsilon_stab = 0.1`, for `2x2`,
+`4x3` and `6x5` respectively. See `theory_numerics/README.md` for the objective, both
+integrators, and the file map.
+
 ### MIT License
 
 ```
